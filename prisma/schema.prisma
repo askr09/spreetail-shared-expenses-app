@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+ 
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  password    String
+
+  memberships GroupMember[]
+  expenses    Expense[] @relation("ExpensePayer")
+}
+
+model Group {
+  id          Int      @id @default(autoincrement())
+  name        String
+
+  members     GroupMember[]
+  expenses    Expense[]
+}
+
+model GroupMember {
+  id          Int       @id @default(autoincrement())
+
+  groupId     Int
+  userId      Int
+
+  joinedAt    DateTime
+  leftAt      DateTime?
+
+  group       Group     @relation(fields: [groupId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Expense {
+  id            Int      @id @default(autoincrement())
+
+  description   String
+  amount        Float
+  currency      String
+  date          DateTime
+  splitType     String
+
+  groupId       Int
+  paidById      Int
+
+  group         Group    @relation(fields: [groupId], references: [id])
+  paidBy        User     @relation("ExpensePayer", fields: [paidById], references: [id])
+
+  participants  ExpenseParticipant[]
+}
+
+model ExpenseParticipant {
+  id          Int      @id @default(autoincrement())
+
+  expenseId   Int
+  userId      Int
+
+  share       Float
+
+  expense     Expense   @relation(fields: [expenseId], references: [id])
+}
+
+model Settlement {
+  id            Int      @id @default(autoincrement())
+
+  payerId       Int
+  receiverId    Int
+
+  amount        Float
+  date          DateTime
+}
+
+model Anomaly {
+  id            Int      @id @default(autoincrement())
+
+  rowNumber     Int
+  type          String
+  description   String
+  actionTaken   String
+}
